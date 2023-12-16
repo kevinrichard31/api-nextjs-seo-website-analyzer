@@ -1,0 +1,2 @@
+detecter si la page timeout
+faire quelque chose si ça se produit pour ne pas bloquer lachaine

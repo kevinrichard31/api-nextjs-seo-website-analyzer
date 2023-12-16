@@ -78,8 +78,20 @@ function intervalCheck() {
           if (err) {
             console.error('Erreur lors de la sélection : ', err);
           } else {
-            console.log(results)
+            console.log(results.length)
+            if(results.length == 0){
+              const updateQuery = 'UPDATE sites SET countCrawled = countCrawled + 1 WHERE id = ?';
+              connection.query(updateQuery, [siteId], (err, results) => {
+                  if (err) {
+                      console.error('Erreur lors de la mise à jour : ', err);
+                  } else {
+                      console.log('Mise à jour réussie. Nombre de lignes modifiées :', results.affectedRows);
+                  }
+              });
+            }
+            console.log('vf')
             results.forEach(async (element) => {
+              console.log('ayoo')
               try {
                   if(isIdInQueue(element.id) == false){
                     taskQueue.push({ url: element.url, id: element.id, siteId: siteId });

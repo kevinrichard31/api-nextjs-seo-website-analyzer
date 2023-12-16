@@ -7,20 +7,23 @@ const connection = require('../config');
 
 // Fonction de crawl pour récupérer le contenu d'une URL
 const crawl = async (url, id) => {
-    
-    try {
-      const updateQuery = 'UPDATE urls SET date = NOW() WHERE id = ?';
-    
-      connection.query(updateQuery, [id], (err, updateResults) => {
-        if (err) {
-          console.error('Erreur lors de la mise à jour : ', err);
-        } else {
-          console.log("🌱 - file: app.js:32 - connection.query - updateResults:", updateResults.affectedRows, "row(s) updated");
-        }
-      });    
+  try {
+    const updateQuery = 'UPDATE urls SET date = NOW() WHERE id = ?';
 
-    // Faire une requête HTTP pour obtenir le contenu de la page
-    const response = await axios.get(url);
+    connection.query(updateQuery, [id], (err, updateResults) => {
+      if (err) {
+        console.error('Erreur lors de la mise à jour : ', err);
+      } else {
+        console.log(
+          '🌱 - file: app.js:32 - connection.query - updateResults:',
+          updateResults.affectedRows,
+          'row(s) updated'
+        );
+      }
+    });
+
+    // Faire une requête HTTP pour obtenir le contenu de la page avec un timeout de 10 secondes
+    const response = await axios.get(url, { timeout: 10000 }); // 10 secondes
 
     // Charger le contenu dans cheerio
     const $ = cheerio.load(response.data);
@@ -31,7 +34,6 @@ const crawl = async (url, id) => {
 
     // Stocker les liens internes et externes
     const internalLinks = [];
-    
     const externalLinks = [];
 
     // Exemple : extraire et trier les liens de la page
@@ -51,13 +53,20 @@ const crawl = async (url, id) => {
         }
       }
     });
-    console.log("🌱 - file: crawl.js:54 - crawl - internalLinks:", internalLinks)
-    return internalLinks
-  
-    } catch (error) {
+    console.log("🌱 - file: crawl.js:54 - crawl - internalLinks:", internalLinks);
+    return internalLinks;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.code === 'ECONNABORTED') {
+      // Handle timeout error
+      console.error(`Timeout error crawling ${url}: ${error.message}`);
+    } else {
+      // Handle other errors
       console.error(`Error crawling ${url}: ${error.message}`);
     }
-  };
+    // Throw the error again to indicate failure
+    throw error;
+  }
+};
 
 
 module.exports = {
