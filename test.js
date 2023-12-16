@@ -64,12 +64,13 @@ function intervalCheck() {
   fifteenMinutesAgo.setMinutes(fifteenMinutesAgo.getMinutes() - 15);
 
   //1 SELECT WEBSITES
-  const selectwebsite = 'SELECT * FROM sites WHERE sites.countCrawled < sites.limit AND sites.countAdded >= sites.countCrawled LIMIT 1';
+  const selectwebsite = 'SELECT * FROM sites WHERE sites.countCrawled < sites.limit AND sites.countAdded > sites.countCrawled LIMIT 1';
   connection.query(selectwebsite, (err, results) => {
     if (err) {
       console.error('Erreur lors de la sélection : ', err);
     } else {
       try {
+        console.log(results)
         let siteId = results[0].id;
         console.log("🌱 - file: test.js:74 - connection.query - results:", siteId)
         const selectQuery = 'SELECT * FROM urls WHERE DATE < ? AND urls.sites_id = ? LIMIT 2';
@@ -85,13 +86,13 @@ function intervalCheck() {
                     console.log("on ajoute dans la queue")
                   }
               } catch (error) {
-                // console.log(error);
+                console.log(error);
               }
             });
           }
         });
       } catch (error) {
-        // console.log(error)
+        console.log(error)
       }
     }
   }); 

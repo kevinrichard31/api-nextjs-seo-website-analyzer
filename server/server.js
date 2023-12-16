@@ -35,16 +35,24 @@ app.post('/addUrl', (req, res) => {
       } else {
         console.log('Nouvelle ligne insérée avec succès!');
         console.log('ID de la nouvelle ligne : ', results.insertId);
+        let siteId = results.insertId;
         // INSERT ALSO IN URLS TABLE
         const insertionQuery = 'INSERT IGNORE INTO urls (url, date, sites_id) VALUES (?, ?, ?)';
-        connection.query(insertionQuery, [formattedUrl, fifteenMinutesAgo, results.insertId], (err, results) => {
+        connection.query(insertionQuery, [formattedUrl, fifteenMinutesAgo, siteId], (err, results) => {
           if (err) {
             console.error('Erreur lors de l\'insertion : ', err);
             res.json("ADDED");
           } else {
             console.log('Nouvelle ligne insérée avec succès!');
             console.log('ID de la nouvelle ligne : ', results.insertId);
-
+            const updateQuery = 'UPDATE sites SET countAdded = 1 WHERE id = ?';
+            connection.query(updateQuery, [siteId], (err, results) => {
+                if (err) {
+                    console.error('Erreur lors de la mise à jour : ', err);
+                } else {
+                    console.log('Mise à jour réussie. Nombre de lignes modifiées :', results.affectedRows);
+                }
+            });
             res.json("ADDED");
           }
         });
