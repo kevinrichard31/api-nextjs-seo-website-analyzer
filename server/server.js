@@ -27,7 +27,7 @@ app.post('/addUrl', (req, res) => {
     const fifteenMinutesAgo = new Date();
     fifteenMinutesAgo.setMinutes(fifteenMinutesAgo.getMinutes() - 15);
 
-    const insertionQuery = 'INSERT IGNORE INTO urls (url, date) VALUES (?, ?)';
+    const insertionQuery = 'INSERT IGNORE INTO sites (baseUrl, date) VALUES (?, ?)';
     connection.query(insertionQuery, [formattedUrl, fifteenMinutesAgo], (err, results) => {
       if (err) {
         console.error('Erreur lors de l\'insertion : ', err);
@@ -35,7 +35,19 @@ app.post('/addUrl', (req, res) => {
       } else {
         console.log('Nouvelle ligne insérée avec succès!');
         console.log('ID de la nouvelle ligne : ', results.insertId);
-        res.json("ADDED");
+        // INSERT ALSO IN URLS TABLE
+        const insertionQuery = 'INSERT IGNORE INTO urls (url, date, sites_id) VALUES (?, ?, ?)';
+        connection.query(insertionQuery, [formattedUrl, fifteenMinutesAgo, results.insertId], (err, results) => {
+          if (err) {
+            console.error('Erreur lors de l\'insertion : ', err);
+            res.json("ADDED");
+          } else {
+            console.log('Nouvelle ligne insérée avec succès!');
+            console.log('ID de la nouvelle ligne : ', results.insertId);
+
+            res.json("ADDED");
+          }
+        });
       }
     });
   } else {
@@ -73,6 +85,9 @@ function isValidURL(url) {
   // Si toutes les conditions sont remplies, retourner true
   return true;
 }
+
+
+
 
 module.exports = {
     startServer

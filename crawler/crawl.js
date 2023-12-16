@@ -31,6 +31,7 @@ const crawl = async (url, id) => {
 
     // Stocker les liens internes et externes
     const internalLinks = [];
+    
     const externalLinks = [];
 
     // Exemple : extraire et trier les liens de la page
@@ -50,7 +51,7 @@ const crawl = async (url, id) => {
         }
       }
     });
-
+    console.log("🌱 - file: crawl.js:54 - crawl - internalLinks:", internalLinks)
     return internalLinks
   
     } catch (error) {
