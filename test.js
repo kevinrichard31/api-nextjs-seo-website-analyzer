@@ -37,8 +37,8 @@ let taskQueue = async.queue(async ({url,id, siteId}, callback) => {
     console.log(results)
     if (err) {
       console.error('Erreur lors de l\'insertion : ', err);
-        connection.query("ALTER TABLE `urls` AUTO_INCREMENT = 1;", (err, results) => {
-        });
+      connection.query("ALTER TABLE `urls` AUTO_INCREMENT = 1;", (err, results) => {
+      });
     } else {
       console.log('Lignes insérées avec succès:', results.affectedRows);
       const updateQuery = 'UPDATE sites SET countAdded = countAdded + ? WHERE id = ?';
@@ -56,7 +56,7 @@ let taskQueue = async.queue(async ({url,id, siteId}, callback) => {
   });
 
   callback();
-}, 2);
+}, 4);
 
 function intervalCheck() {
   // Calculer la date limite en soustrayant 15 minutes de la date actuelle
@@ -64,7 +64,7 @@ function intervalCheck() {
   fifteenMinutesAgo.setMinutes(fifteenMinutesAgo.getMinutes() - 15);
 
   //1 SELECT WEBSITES
-  const selectwebsite = 'SELECT * FROM sites WHERE sites.countCrawled < sites.limit AND sites.countAdded > sites.countCrawled LIMIT 1';
+  const selectwebsite = 'SELECT * FROM sites WHERE sites.countCrawled < sites.limit AND sites.countAdded > sites.countCrawled LIMIT 4';
   connection.query(selectwebsite, (err, results) => {
     if (err) {
       console.error('Erreur lors de la sélection : ', err);

@@ -1,2 +1,3 @@
-detecter si la page timeout
-faire quelque chose si ça se produit pour ne pas bloquer lachaine
+Changer de crawler, passer sur un crawler chrome.
+Detecter la provenance de l'url.
+filter ne pas ajouter les avec les extensions d'images

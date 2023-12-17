@@ -27,7 +27,7 @@ const crawl = async (url, id) => {
 
     // Charger le contenu dans cheerio
     const $ = cheerio.load(response.data);
-
+    // console.log(response.data)
     // Exemple : extraire le titre de la page
     const pageTitle = $('head title').text();
     console.log('Titre de la page:', pageTitle);
