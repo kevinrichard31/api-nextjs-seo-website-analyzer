@@ -13,7 +13,7 @@ const { findMissingH1Tags, findMissingAltTags } = require('./data')
 const { addHttpsPrefix } = require('./utils')
 const crawler = require('./crawler/crawl')
 const server = require('./server/server')
-server.startServer();
+// server.startServer();
 
 
 const uuid = require('uuid'); // Assurez-vous d'installer le module uuid avec npm install uuid
@@ -64,7 +64,7 @@ function intervalCheck() {
   fifteenMinutesAgo.setMinutes(fifteenMinutesAgo.getMinutes() - 15);
 
   //1 SELECT WEBSITES
-  const selectwebsite = 'SELECT * FROM sites WHERE sites.countCrawled < sites.limit AND sites.countAdded > sites.countCrawled LIMIT 4';
+  const selectwebsite = 'SELECT * FROM sites WHERE sites.countCrawled < sites.limit AND sites.countAdded > sites.countCrawled LIMIT 1';
   connection.query(selectwebsite, (err, results) => {
     if (err) {
       console.error('Erreur lors de la sélection : ', err);
@@ -73,7 +73,7 @@ function intervalCheck() {
         console.log(results)
         let siteId = results[0].id;
         console.log("🌱 - file: test.js:74 - connection.query - results:", siteId)
-        const selectQuery = 'SELECT * FROM urls WHERE DATE < ? AND urls.sites_id = ? LIMIT 2';
+        const selectQuery = 'SELECT * FROM urls WHERE DATE < ? AND urls.sites_id = ? LIMIT 4';
         connection.query(selectQuery, [fifteenMinutesAgo, siteId], (err, results) => {
           if (err) {
             console.error('Erreur lors de la sélection : ', err);

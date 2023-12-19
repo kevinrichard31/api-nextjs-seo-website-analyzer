@@ -3,6 +3,8 @@ const cheerio = require('cheerio');
 const urlModule = require('url');
 const mysql = require('mysql2');
 const connection = require('../config');
+const puppeteer = require('puppeteer');
+
 
 
 // Fonction de crawl pour récupérer le contenu d'une URL
@@ -22,49 +24,51 @@ const crawl = async (url, id) => {
       }
     });
 
-    // Faire une requête HTTP pour obtenir le contenu de la page avec un timeout de 10 secondes
-    const response = await axios.get(url, { timeout: 10000 }); // 10 secondes
 
-    // Charger le contenu dans cheerio
-    const $ = cheerio.load(response.data);
-    // console.log(response.data)
-    // Exemple : extraire le titre de la page
-    const pageTitle = $('head title').text();
-    console.log('Titre de la page:', pageTitle);
+    const browser = await puppeteer.launch({ headless: true });
+    let page = await browser.newPage();
+  
 
-    // Stocker les liens internes et externes
-    const internalLinks = [];
-    const externalLinks = [];
+    const timeoutPromise = new Promise((resolve) =>
+      setTimeout(resolve, 8000, 'Timeout reached')
+    );
 
-    // Exemple : extraire et trier les liens de la page
-    $('a').each((index, element) => {
-      const link = $(element).attr('href');
+    const pagePromise = page.goto(url).then(() => page.content());
 
-      if (link) {
-        // Vérifier si le lien est interne ou externe
-        const resolvedUrl = new urlModule.URL(link, url).toString();
-        if (new urlModule.URL(resolvedUrl).hostname === new urlModule.URL(url).hostname) {
-          // Ajouter uniquement les liens internes non vides et sans doublons
-          if (link !== '#' && !internalLinks.includes(resolvedUrl)) {
-            internalLinks.push(resolvedUrl);
-          }
-        } else {
-          externalLinks.push(link);
-        }
-      }
-    });
-    console.log("🌱 - file: crawl.js:54 - crawl - internalLinks:", internalLinks);
-    return internalLinks;
-  } catch (error) {
-    if (axios.isAxiosError(error) && error.code === 'ECONNABORTED') {
-      // Handle timeout error
-      console.error(`Timeout error crawling ${url}: ${error.message}`);
+    const result = await Promise.race([timeoutPromise, pagePromise]);
+
+    if (result === 'Timeout reached') {
+      console.log('Timeout reached for:', url);
+      // Vous pouvez ajouter un code pour passer à la page suivante ici
     } else {
-      // Handle other errors
-      console.error(`Error crawling ${url}: ${error.message}`);
+      const $ = cheerio.load(result);
+      const internalLinks = [];
+      const externalLinks = [];
+
+      $('a').each((index, element) => {
+        const link = $(element).attr('href');
+
+        if (link) {
+          const resolvedUrl = new urlModule.URL(link, url).toString();
+          if (new urlModule.URL(resolvedUrl).hostname === new urlModule.URL(url).hostname) {
+            if (link !== '#' && !internalLinks.includes(resolvedUrl)) {
+              internalLinks.push(resolvedUrl);
+            }
+          } else {
+            externalLinks.push(link);
+          }
+        }
+      });
+
+      console.log("🌱 - file: pup.js:29 - parse - internalLinks:", internalLinks);
+      console.log("🌱 - file: pup.js:30 - parse - externalLinks:", externalLinks);
+
+      return internalLinks;
     }
-    // Throw the error again to indicate failure
-    throw error;
+
+    await browser.close();
+  } catch (error) {
+    console.error('Error:', error);
   }
 };
 
