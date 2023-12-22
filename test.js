@@ -29,10 +29,10 @@ let taskQueue = async.queue(async ({url,id, siteId}, callback) => {
   connection.query("ALTER TABLE `urls` AUTO_INCREMENT = 1;", (err, results) => {
   });
   // Prepare the data for bulk insert
-  const bulkInsertData = internalLinks.map(internalUrl => [internalUrl, fifteenMinutesAgo, siteId]);
+  const bulkInsertData = internalLinks.map(internalUrl => [internalUrl, fifteenMinutesAgo, siteId, url]);
 
   // Use a single bulk insert query
-  const bulkInsertQuery = 'INSERT IGNORE INTO urls (url, date, sites_id) VALUES ?';
+  const bulkInsertQuery = 'INSERT IGNORE INTO urls (url, date, sites_id, fromUrl) VALUES ?';
   connection.query(bulkInsertQuery, [bulkInsertData], (err, results) => {
     console.log(results)
     if (err) {
@@ -64,7 +64,7 @@ function intervalCheck() {
   fifteenMinutesAgo.setMinutes(fifteenMinutesAgo.getMinutes() - 15);
 
   //1 SELECT WEBSITES
-  const selectwebsite = 'SELECT * FROM sites WHERE sites.countCrawled < sites.limit AND sites.countAdded > sites.countCrawled LIMIT 1';
+  const selectwebsite = 'SELECT * FROM sites WHERE sites.countCrawled < sites.limit AND sites.countAdded > sites.countCrawled ORDER BY RAND() LIMIT 1';
   connection.query(selectwebsite, (err, results) => {
     if (err) {
       console.error('Erreur lors de la sélection : ', err);
@@ -73,7 +73,7 @@ function intervalCheck() {
         console.log(results)
         let siteId = results[0].id;
         console.log("🌱 - file: test.js:74 - connection.query - results:", siteId)
-        const selectQuery = 'SELECT * FROM urls WHERE DATE < ? AND urls.sites_id = ? LIMIT 4';
+        const selectQuery = 'SELECT * FROM urls WHERE DATE < ? AND urls.sites_id = ? LIMIT 1';
         connection.query(selectQuery, [fifteenMinutesAgo, siteId], (err, results) => {
           if (err) {
             console.error('Erreur lors de la sélection : ', err);
@@ -89,9 +89,7 @@ function intervalCheck() {
                   }
               });
             }
-            console.log('vf')
             results.forEach(async (element) => {
-              console.log('ayoo')
               try {
                   if(isIdInQueue(element.id) == false){
                     taskQueue.push({ url: element.url, id: element.id, siteId: siteId });

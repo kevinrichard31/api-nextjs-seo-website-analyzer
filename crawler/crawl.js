@@ -5,9 +5,14 @@ const mysql = require('mysql2');
 const connection = require('../config');
 const puppeteer = require('puppeteer');
 
+let page
+async function startpup() {
+  const browser = await puppeteer.launch({ headless: true });
+  page = await browser.newPage();
+  console.log('hello')
+}
 
-
-// Fonction de crawl pour récupérer le contenu d'une URL
+startpup();
 const crawl = async (url, id) => {
   try {
     const updateQuery = 'UPDATE urls SET date = NOW() WHERE id = ?';
@@ -25,8 +30,7 @@ const crawl = async (url, id) => {
     });
 
 
-    const browser = await puppeteer.launch({ headless: true });
-    let page = await browser.newPage();
+
   
 
     const timeoutPromise = new Promise((resolve) =>
@@ -39,7 +43,6 @@ const crawl = async (url, id) => {
 
     if (result === 'Timeout reached') {
       console.log('Timeout reached for:', url);
-      // Vous pouvez ajouter un code pour passer à la page suivante ici
     } else {
       const $ = cheerio.load(result);
       const internalLinks = [];
@@ -60,15 +63,16 @@ const crawl = async (url, id) => {
         }
       });
 
-      console.log("🌱 - file: pup.js:29 - parse - internalLinks:", internalLinks);
-      console.log("🌱 - file: pup.js:30 - parse - externalLinks:", externalLinks);
+      // console.log("🌱 - file: pup.js:29 - parse - internalLinks:", internalLinks);
+      // console.log("🌱 - file: pup.js:30 - parse - externalLinks:", externalLinks);
 
       return internalLinks;
     }
 
-    await browser.close();
+    // await browser.close();
   } catch (error) {
     console.error('Error:', error);
+    // await browser.close();
   }
 };
 
