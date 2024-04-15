@@ -9,34 +9,41 @@ function findMissingH1Tags(html) {
   const allH1Tags = $('h1');
   const allH1Texts = allH1Tags.map((index, element) => $(element).text()).get();
 
-  return allH1Texts.length === 0;
+  if (allH1Texts.length === 0){
+    return {error: 'H1 missing'}
+  }
 }
-function findMissingAltTags(html) {
+function findMissingH2Tags(html) {
   const $ = cheerio.load(html);
 
-  const allImgTags = $('img');
-  const missingAltTags = [];
+  const allH1Tags = $('h2');
+  const allH1Texts = allH1Tags.map((index, element) => $(element).text()).get();
 
-  allImgTags.each((index, element) => {
-    const altAttribute = $(element).attr('alt');
-    const srcAttribute = $(element).attr('src');
-    const titleAttribute = $(element).attr('title');
+  if (allH1Texts.length === 0){
+    return {error: 'H2 missing'}
+  }
+}
+function findMissingH3Tags(html) {
+  const $ = cheerio.load(html);
 
-    if (!altAttribute || altAttribute.trim() === '') {
-      missingAltTags.push({
-        title: titleAttribute, 
-        src: srcAttribute,
-        alt: altAttribute
-      }); // Stocker l'URL au lieu de l'élément
-    }
-  });
+  const allH1Tags = $('h3');
+  const allH1Texts = allH1Tags.map((index, element) => $(element).text()).get();
 
-  return missingAltTags;
+  if (allH1Texts.length === 0){
+    return {error: 'H3 missing'}
+  }
+}
+function findMissingAltTags(image) {
+  if(image.width > 100){
+    return {error: 'Missing alt image', image: image.src, width: image.width, height: image.height}
+  }
 }
 
 
 // Exporter la fonction pour la rendre accessible à d'autres fichiers
 module.exports = {
   findMissingH1Tags,
+  findMissingH2Tags,
+  findMissingH3Tags,
   findMissingAltTags
 };
