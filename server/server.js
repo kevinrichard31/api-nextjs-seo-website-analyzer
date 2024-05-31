@@ -6,7 +6,9 @@ const async = require('async'); // Add async library
 const app = express();
 const PORT = 3001;
 const mysql = require('mysql2');
-
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const JWT_SECRET = 'jwt_signature_1823641*9238476*';
 const connection = require('../config');
 
 
@@ -65,6 +67,58 @@ app.post('/addUrl', (req, res) => {
 });
 
 
+app.get('/getIssuesHomepage/:siteId', (req, res) => {
+  const siteId = req.params.siteId;
+  const query = 'SELECT * FROM issues WHERE sites_id = ? LIMIT 10';
+
+  connection.query(query, [siteId], (err, results) => {
+    if (err) {
+      console.error('Erreur lors de la récupération des données : ', err);
+      res.status(500).json({ error: 'Erreur lors de la récupération des données' });
+    } else {
+      res.json(results);
+    }
+  });
+});
+
+app.post('/register', async (req, res) => {
+  const { username, password } = req.body;
+
+  if (!username || !password) {
+    return res.status(400).json({ msg: 'Please provide a username and password' });
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+  connection.query(
+    'INSERT INTO users (username, password) VALUES (?, ?)',
+    [username, hashedPassword],
+    (err, results) => {
+      if (err) {
+        return res.status(500).json({ msg: 'Error registering user' });
+      }
+      res.status(201).json({ msg: 'User registered successfully' });
+    }
+  );
+});
+
+const verifyToken = (req, res, next) => {
+  const token = req.headers['x-access-token'];
+  if (!token) {
+    return res.status(403).json({ msg: 'No token provided' });
+  }
+  jwt.verify(token, JWT_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(500).json({ msg: 'Failed to authenticate token' });
+    }
+    req.userId = decoded.id;
+    next();
+  });
+};
+
+// Example protected route
+app.get('/protected', verifyToken, (req, res) => {
+  res.json({ msg: 'This is a protected route' });
+});
 function startServer(){
     app.listen(PORT, () => {
         console.log(`Serveur Express en cours d'exécution sur le port ${PORT}`);
