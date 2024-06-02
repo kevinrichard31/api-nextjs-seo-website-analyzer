@@ -82,16 +82,17 @@ app.get('/getIssuesHomepage/:siteId', (req, res) => {
 });
 
 app.post('/register', async (req, res) => {
-  const { username, password } = req.body;
+  const { firstName, lastName, email, password } = req.body;
 
-  if (!username || !password) {
+  if (!firstName || !lastName|| !email|| !password) {
     return res.status(400).json({ msg: 'Please provide a username and password' });
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
+  console.log("🌱 - app.post - hashedPassword:", hashedPassword)
   connection.query(
-    'INSERT INTO users (username, password) VALUES (?, ?)',
-    [username, hashedPassword],
+    'INSERT INTO users (firstName, lastName, email, password) VALUES (?, ?, ?, ?)',
+    [firstName, lastName, email, hashedPassword],
     (err, results) => {
       if (err) {
         return res.status(500).json({ msg: 'Error registering user' });
@@ -114,6 +115,50 @@ const verifyToken = (req, res, next) => {
     next();
   });
 };
+
+
+// Route pour connecter un utilisateur et générer un token JWT
+app.post('/login', async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+      return res.status(400).json({ msg: 'Please provide email and password' });
+  }
+
+  connection.query(
+      'SELECT * FROM users WHERE email = ?',
+      [email],
+      async (err, results) => {
+          if (err || results.length === 0) {
+              return res.status(400).json({ msg: 'User not found' });
+          }
+
+          const user = results[0];
+          const isPasswordValid = await bcrypt.compare(password, user.password);
+
+          if (!isPasswordValid) {
+              return res.status(401).json({ msg: 'Invalid password' });
+          }
+
+          const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: '1h' });
+          res.json({ msg: 'Login successful', token });
+      }
+  );
+});
+
+// Route protégée pour obtenir des informations de l'utilisateur
+app.get('/userInfo', verifyToken, (req, res) => {
+  connection.query(
+      'SELECT firstName, lastName, email FROM users WHERE id = ?',
+      [req.userId],
+      (err, results) => {
+          if (err) {
+              return res.status(500).json({ msg: 'Error fetching user info' });
+          }
+          res.json(results[0]);
+      }
+  );
+});
 
 // Example protected route
 app.get('/protected', verifyToken, (req, res) => {
@@ -147,8 +192,6 @@ function isValidURL(url) {
   // Si toutes les conditions sont remplies, retourner true
   return true;
 }
-
-
 
 
 module.exports = {
