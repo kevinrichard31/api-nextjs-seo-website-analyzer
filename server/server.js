@@ -140,7 +140,7 @@ app.post('/login', async (req, res) => {
               return res.status(401).json({ msg: 'Invalid password' });
           }
 
-          const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: '1h' });
+          const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: '24h' });
           res.json({ msg: 'Login successful', token });
       }
   );
