@@ -39,9 +39,10 @@ const crawl = async (url, urlId, siteId) => {
       setTimeout(resolve, 8000, 'Timeout reached')}
     );
 
+    const start = Date.now()
     const pagePromise = page.goto(url).then(() => page.content());
-
     const result = await Promise.race([timeoutPromise, pagePromise]);
+    const loadtime = Date.now() - start
 
     if (result === 'Timeout reached') {
       console.log('Timeout reached for:', url);
@@ -83,6 +84,8 @@ const crawl = async (url, urlId, siteId) => {
       let allErrors = dataParser.parseData(result, images);
       console.log("🌱 - crawl - allErrors:", allErrors)
       console.log(allErrors)
+
+      allErrors.push({ error: `Load Time ${loadtime} ms` });
       allErrors.forEach(error => {
         const insertionQuery = 'INSERT IGNORE INTO issues (type, urls_id, sites_id) VALUES (?, ?, ?)';
         connection.query(insertionQuery, [error.error, urlId, siteId], (err, results) => {

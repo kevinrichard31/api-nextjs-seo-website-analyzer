@@ -24,6 +24,23 @@ function parseData(html, images) {
         allErrors.push(imageParsed);
     }
   });
+  var missingTitleTag = data.findMissingTitleTag(html);
+  if (missingTitleTag !== null && missingTitleTag !== undefined) {
+      allErrors.push(missingTitleTag);
+  }
+  var missingMetaDescription = data.findMissingMetaDescription(html);
+  if (missingMetaDescription !== null && missingMetaDescription !== undefined) {
+      allErrors.push(missingMetaDescription);
+  }
+  var missingCanonicalTag = data.findCanonicalTag(html);
+  if (missingCanonicalTag !== null && missingCanonicalTag !== undefined) {
+      allErrors.push(missingCanonicalTag);
+  }
+//   var checkHeading = data.checkHeadingOrder(html);
+//   if (checkHeading !== null && checkHeading !== undefined) {
+//       allErrors.push(checkHeading);
+//   }
+
 
   return allErrors
 }

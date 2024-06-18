@@ -9,7 +9,6 @@ const PORT = 3001;
 
 const connection = require('./config');
 
-const { findMissingH1Tags, findMissingAltTags } = require('./data')
 const { addHttpsPrefix } = require('./utils')
 const crawler = require('./crawler/crawl')
 const server = require('./server/server')
