@@ -70,14 +70,16 @@ const crawl = async (url, urlId, siteId) => {
       for (let i = 0; i < imageElements.length; i++) {
         const element = imageElements[i];
         const src = $(element).attr('src');
-        const extension = src.split('.').pop().toLowerCase();
-        // Vérifier si l'extension est jpg, jpeg, png ou webp
-        if (['jpg', 'jpeg', 'png', 'webp'].includes(extension)) {
-          const dimensions = await page.evaluate(imgSrc => {
-            const img = document.querySelector(`img[src="${imgSrc}"]`);
-            return { width: img.width, height: img.height };
-          }, src);
-          images.push({ src, ...dimensions });
+        if(src != undefined){
+          const extension = src.split('.').pop().toLowerCase();
+          // Vérifier si l'extension est jpg, jpeg, png ou webp
+          if (['jpg', 'jpeg', 'png', 'webp'].includes(extension)) {
+            const dimensions = await page.evaluate(imgSrc => {
+              const img = document.querySelector(`img[src="${imgSrc}"]`);
+              return { width: img.width, height: img.height };
+            }, src);
+            images.push({ src, ...dimensions });
+          }
         }
       }
       
@@ -92,7 +94,7 @@ const crawl = async (url, urlId, siteId) => {
           if (err) {
             console.error('Erreur lors de l\'insertion : ', err);
           } else {
-            console.log('Erreur ajoutée');
+            // console.log('Erreur ajoutée');
           }
         });
       });
@@ -104,9 +106,6 @@ const crawl = async (url, urlId, siteId) => {
 
       return internalLinks;
     }
-      console.log("🌱 - crawl - allErrors:", allErrors)
-
-    // await browser.close();
   } catch (error) {
     console.error('Error:', error);
     // await browser.close();
